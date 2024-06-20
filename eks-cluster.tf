@@ -2,7 +2,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
-  cluster_name    = "my-cluster"
+  cluster_name    = "my-cluster1"
   cluster_version = "1.30"
 
   # EKS Addons
@@ -20,13 +20,13 @@ module "eks" {
       most_recent = true
     }
   }
-  create_iam_role         = false
-  iam_role_arn            = aws_iam_role.eks_cluster_iam_role.arn
-  vpc_id                  = module.vpc.vpc_id
-  subnet_ids              = module.vpc.private_subnets
-  create_kms_key          = true
-  enable_kms_key_rotation = true
-
+  create_iam_role           = false
+  iam_role_arn              = aws_iam_role.cluster_role.arn
+  vpc_id                    = aws_vpc.main.id
+  subnet_ids                = aws_subnet.private[*].id
+  control_plane_subnet_ids = aws_subnet.public[*].id
+  cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+  enable_cluster_creator_admin_permissions = true
   eks_managed_node_groups = {
     example = {
       ami_type                 = "AL2_x86_64"
@@ -41,7 +41,7 @@ module "eks" {
       }
       iam_role_additional_policies = {
         AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-        additional                         = aws_iam_policy.node_additional.name
+        additional                         = aws_iam_policy.node_additional.arn
       }
       min_size     = 2
       max_size     = 5
@@ -49,10 +49,10 @@ module "eks" {
     }
   }
 
-  tags = local.tags
+  tags = {}
 }
 resource "aws_iam_policy" "node_additional" {
-  name        = "${local.name}-additional"
+  name        = "node_group-additional"
   description = "Example usage of node additional policy"
 
   policy = jsonencode({
@@ -68,5 +68,5 @@ resource "aws_iam_policy" "node_additional" {
     ]
   })
 
-  tags = local.tags
+  tags = {}
 }
