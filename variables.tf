@@ -157,3 +157,39 @@ variable "tags" {
   }
 }
 
+variable "ami_type" {
+  description = "The AMI type for the EKS managed node group"
+  type        = string
+  default     = "AL2_x86_64"
+}
+variable "instance_types" {
+  description = "List of instance types for the EKS managed node group"
+  type        = list(string)
+  default     = ["c3.large"]
+  
+}
+variable "capacity_type" {
+  description = "The capacity type for the EKS managed node group"
+  type        = string
+  default     = "ON_DEMAND"
+}
+
+variable "podminsize" {
+  description = "The minimum size of the EKS managed node group"
+  type        = number
+  default     = 3
+  
+}
+variable "podmaxsize" {
+  description = "The maximum size of the EKS managed node group"
+  type        = number
+  default     = 6
+  
+}
+variable "desired_size" {
+  description = "The desired size of the EKS managed node group"
+  type        = number
+  default     = 3
+  
+}
+
