@@ -35,10 +35,10 @@ module "eks" {
   enable_cluster_creator_admin_permissions = var.enable_cluster_creator_admin_permissions
   eks_managed_node_groups = {
   example = {
-    ami_type                 = "AL2_x86_64"
-    instance_types           = ["c3.large"]
+    ami_type                 = var.ami_type
+    instance_types           = var.instance_types
     create_iam_role          = true
-    capacity_type            = "ON_DEMAND"
+    capacity_type            = var.capacity_type
     iam_role_name            = "eks-managed-node-group-complete-example"
     iam_role_use_name_prefix = false
     iam_role_description     = "EKS managed node group complete example role"
@@ -49,9 +49,9 @@ module "eks" {
       AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
       additional                         = aws_iam_policy.node_additional.arn
     }
-    min_size     = 3
-    max_size     = 6
-    desired_size = 3
+    min_size     = var.podminsize
+    max_size     = var.podmaxsize
+    desired_size = var.desired_size
   }
 }
 
