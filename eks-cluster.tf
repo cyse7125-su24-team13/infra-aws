@@ -2,61 +2,62 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
-  cluster_name    = "my-cluster2"
-  cluster_version = "1.30"
+  cluster_name    = var.cluster_name
+  cluster_version = var.cluster_version
 
-  # EKS Addons
   cluster_addons = {
-    coredns = {
-      most_recent = true
-    }
-    vpc-cni = {
-      most_recent = true
-    }
-    kube-proxy = {
-      most_recent = true
-    }
-    eks-pod-identity-agent = {
-      most_recent = true
-    }
-    aws-ebs-csi-driver = {
-      most_recent              = true
-      service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
-    }
+  coredns = {
+    most_recent = true
   }
-  create_iam_role           = false
+  vpc-cni = {
+    most_recent = true
+  }
+  kube-proxy = {
+    most_recent = true
+  }
+  eks-pod-identity-agent = {
+    most_recent = true
+  }
+  aws-ebs-csi-driver = {
+    most_recent              = true
+    service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
+  }
+}
+
+  create_iam_role           = var.create_iam_role
   iam_role_arn              = aws_iam_role.cluster_role.arn
-  cluster_endpoint_private_access = true
-  cluster_endpoint_public_access = true
+  cluster_endpoint_private_access = var.cluster_endpoint_private_access
+  cluster_endpoint_public_access = var.cluster_endpoint_public_access
   vpc_id                    = aws_vpc.main.id
   subnet_ids                = aws_subnet.private[*].id
   control_plane_subnet_ids = aws_subnet.public[*].id
-  cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
-  enable_cluster_creator_admin_permissions = true
+  cluster_enabled_log_types = var.cluster_enabled_log_types
+  enable_cluster_creator_admin_permissions = var.enable_cluster_creator_admin_permissions
   eks_managed_node_groups = {
-    example = {
-      ami_type                 = "AL2_x86_64"
-      instance_types           = ["c3.large"]
-      create_iam_role          = true
-      capacity_type            = "ON_DEMAND"
-      iam_role_name            = "eks-managed-node-group-complete-example"
-      iam_role_use_name_prefix = false
-      iam_role_description     = "EKS managed node group complete example role"
-      iam_role_tags = {
-        Purpose = "Protector of the kubelet"
-      }
-      iam_role_additional_policies = {
-        AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-        additional                         = aws_iam_policy.node_additional.arn
-      }
-      min_size     = 3
-      max_size     = 6
-      desired_size = 3
+  example = {
+    ami_type                 = "AL2_x86_64"
+    instance_types           = ["c3.large"]
+    create_iam_role          = true
+    capacity_type            = "ON_DEMAND"
+    iam_role_name            = "eks-managed-node-group-complete-example"
+    iam_role_use_name_prefix = false
+    iam_role_description     = "EKS managed node group complete example role"
+    iam_role_tags = {
+      Purpose = "Protector of the kubelet"
     }
+    iam_role_additional_policies = {
+      AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      additional                         = aws_iam_policy.node_additional.arn
+    }
+    min_size     = 3
+    max_size     = 6
+    desired_size = 3
   }
-
-  tags = {}
 }
+
+  tags = var.tagseks
+}
+
 resource "aws_iam_policy" "node_additional" {
   name        = "node_group-additional"
   description = "Example usage of node additional policy"
@@ -74,8 +75,9 @@ resource "aws_iam_policy" "node_additional" {
     ]
   })
 
-  tags = {}
+  tags = var.tagseks
 }
+
 module "ebs_csi_irsa_role" {
   source                = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   attach_ebs_csi_policy = true
@@ -89,7 +91,6 @@ module "ebs_csi_irsa_role" {
     example = {
       provider_arn               = module.eks.oidc_provider_arn
       namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
-
-      }
     }
+  }
 }
