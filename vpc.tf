@@ -1,34 +1,21 @@
 provider "aws" {
-  region = local.region
+  region  = var.region
   profile = var.aws_profile
 }
 
 data "aws_availability_zones" "available" {}
 
 locals {
-  name   = "ex-eks-mng"
-  region = "us-east-1"
+  name   = var.tags["Example"]
+  region = var.region
 
-  vpc_cidr = "10.1.0.0/16"
+  vpc_cidr = var.vpc_cidr
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
-  public_subnet_cidrs = [
-    "10.1.1.0/24",
-    "10.1.2.0/24",
-    "10.1.3.0/24"
-  ]
+  public_subnet_cidrs = var.public_subnet_cidrs
+  private_subnet_cidrs = var.private_subnet_cidrs
 
-  private_subnet_cidrs = [
-    "10.1.4.0/24",
-    "10.1.5.0/24",
-    "10.1.6.0/24"
-  ]
-
-  tags = {
-    Example    = local.name
-    GithubRepo = "terraform-aws-eks"
-    GithubOrg  = "terraform-aws-modules"
-  }
+  tags = var.tags
 }
 
 resource "aws_vpc" "main" {
@@ -126,4 +113,26 @@ resource "aws_route_table_association" "private" {
   count          = length(aws_subnet.private)
   subnet_id      = element(aws_subnet.private.*.id, count.index)
   route_table_id = element(aws_route_table.private.*.id, count.index)
+}
+
+resource "aws_security_group" "eks_cluster" {
+  vpc_id = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "eks-cluster-sg"
+  }
 }
