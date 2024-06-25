@@ -1,3 +1,19 @@
+data "aws_eks_cluster" "eks" {
+  name = module.eks.cluster_name
+  depends_on = [ module.eks ]
+}
+
+data "aws_eks_cluster_auth" "eks" {
+  name = module.eks.cluster_name
+  depends_on = [ module.eks ]
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.eks.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.eks.token
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
@@ -92,5 +108,11 @@ module "ebs_csi_irsa_role" {
       provider_arn               = module.eks.oidc_provider_arn
       namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
     }
+  }
+}
+resource "kubernetes_namespace" "example" {
+  for_each = toset(var.namespaces)
+  metadata {
+    name = each.value
   }
 }
