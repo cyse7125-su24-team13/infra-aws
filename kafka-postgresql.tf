@@ -144,6 +144,30 @@ resource "helm_release" "postgresql_ha" {
     name  = "pgpool.customUsers.passwords"
     value = "changeme"
   }
+  set {
+    name  = "pgpool.numInitChildren"
+    value = "32"
+  }
+
+  set {
+    name  = "pgpool.maxPool"
+    value = "100"
+  }
+
+  set {
+    name  = "pgpool.childLifeTime"
+    value = "300"
+  }
+
+  set {
+    name  = "pgpool.connectionLifeTime"
+    value = "600"
+  }
+
+  set {
+    name  = "pgpool.clientIdleLimit"
+    value = "60"
+  }
 }
 
 data "aws_eks_cluster_auth" "cluster" {
