@@ -192,4 +192,9 @@ variable "desired_size" {
   default     = 3
   
 }
-
+variable "namespaces" {
+  description = "List of namespaces"
+  type        = list(string)
+  default     = ["namespace1", "namespace2", "namespace3"]
+  
+}
