@@ -12,82 +12,87 @@ resource "helm_release" "kafka" {
   name       = "kafka"
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "kafka"
-  namespace  = "namespace2"
-  version    = "25.2.0"
+  namespace  = var.namespace_kafka
+  version    = var.kafka_version
 
   set {
     name  = "listeners.client.protocol"
-    value = "PLAINTEXT"
+    value = var.listeners_client_protocol
   }
 
   set {
     name  = "listeners.controller.protocol"
-    value = "PLAINTEXT"
+    value = var.listeners_controller_protocol
   }
 
   set {
     name  = "listeners.interbroker.protocol"
-    value = "PLAINTEXT"
+    value = var.listeners_interbroker_protocol
   }
 
   set {
     name  = "listeners.external.protocol"
-    value = "PLAINTEXT"
+    value = var.listeners_external_protocol
   }
 
   set {
     name  = "controller.replicaCount"
-    value = "0"
+    value = var.controller_replica_count
   }
 
   set {
     name  = "broker.replicaCount"
-    value = "3"
+    value = var.broker_replica_count
   }
 
   set {
     name  = "broker.persistence.size"
-    value = "4Gi"
+    value = var.broker_persistence_size
   }
 
   set {
     name  = "serviceAccount.create"
-    value = "false"
+    value = var.service_account_create
   }
 
   set {
     name  = "provisioning.enabled"
-    value = "true"
+    value = var.provisioning_enabled
   }
 
   set {
     name  = "provisioning.numPartitions"
-    value = "3"
+    value = var.provisioning_num_partitions
   }
 
   set {
     name  = "provisioning.replicationFactor"
-    value = "2"
+    value = var.provisioning_replication_factor
   }
 
   set {
     name  = "provisioning.topics[0].name"
-    value = "cve"
+    value = var.provisioning_topic_name
   }
 
   set {
     name  = "kraft.enabled"
-    value = "false"
+    value = var.kraft_enabled
+  }
+
+  set {
+    name  = "zookeeper.replicaCount"
+    value = var.zookeeper_replica_count
   }
 
   set {
     name  = "zookeeper.enabled"
-    value = "true"
+    value = var.zookeeper_enabled
   }
 
   set {
     name  = "zookeeper.persistence.size"
-    value = "2Gi"
+    value = var.zookeeper_persistence_size
   }
 }
 
@@ -97,78 +102,80 @@ resource "helm_release" "postgresql_ha" {
   name       = "postgresql-ha"
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql-ha"
-  namespace  = "namespace3"
-  version    = "14.2.7"
+  namespace  = var.namespace_postgresql
+  version    = var.postgresql_version
 
   set {
     name  = "postgresql.postgresPassword"
-    value = "changeme"
+    value = var.postgresql_postgres_password
   }
 
   set {
     name  = "postgresql.username"
-    value = "cve"
+    value = var.postgresql_username
   }
 
   set {
     name  = "postgresql.password"
-    value = "changeme"
+    value = var.postgresql_password
   }
 
   set {
     name  = "postgresql.database"
-    value = "mydatabase"
+    value = var.postgresql_database
   }
 
   set {
     name  = "postgresql.repmgrUsername"
-    value = "repmgr"
+    value = var.postgresql_repmgr_username
   }
 
   set {
     name  = "postgresql.repmgrPassword"
-    value = "repmgrpassword"
+    value = var.postgresql_repmgr_password
   }
 
   set {
     name  = "postgresql.repmgrDatabase"
-    value = "repmgr"
+    value = var.postgresql_repmgr_database
   }
 
   set {
     name  = "pgpool.customUsers.usernames"
-    value = "cve"
+    value = var.pgpool_custom_usernames
   }
 
   set {
     name  = "pgpool.customUsers.passwords"
-    value = "changeme"
+    value = var.pgpool_custom_passwords
   }
+
   set {
     name  = "pgpool.numInitChildren"
-    value = "32"
+    value = var.pgpool_num_init_children
   }
 
   set {
     name  = "pgpool.maxPool"
-    value = "100"
+    value = var.pgpool_max_pool
   }
 
   set {
     name  = "pgpool.childLifeTime"
-    value = "300"
+    value = var.pgpool_child_life_time
   }
 
   set {
     name  = "pgpool.connectionLifeTime"
-    value = "600"
+    value = var.pgpool_connection_life_time
   }
 
   set {
     name  = "pgpool.clientIdleLimit"
-    value = "60"
+    value = var.pgpool_client_idle_limit
   }
 }
+
 
 data "aws_eks_cluster_auth" "cluster" {
   name = module.eks.cluster_name
