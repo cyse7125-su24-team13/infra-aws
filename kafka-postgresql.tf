@@ -67,7 +67,7 @@ resource "helm_release" "kafka" {
 
   set {
     name  = "provisioning.replicationFactor"
-    value = "1"
+    value = "2"
   }
 
   set {
