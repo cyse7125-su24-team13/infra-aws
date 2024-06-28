@@ -1,5 +1,5 @@
 variable "aws_profile" {
-  type = string
+  type    = string
   default = ""
 }
 variable "cluster_name" {
@@ -166,7 +166,7 @@ variable "instance_types" {
   description = "List of instance types for the EKS managed node group"
   type        = list(string)
   default     = ["c3.large"]
-  
+
 }
 variable "capacity_type" {
   description = "The capacity type for the EKS managed node group"
@@ -178,23 +178,195 @@ variable "podminsize" {
   description = "The minimum size of the EKS managed node group"
   type        = number
   default     = 3
-  
+
 }
 variable "podmaxsize" {
   description = "The maximum size of the EKS managed node group"
   type        = number
   default     = 6
-  
+
 }
 variable "desired_size" {
   description = "The desired size of the EKS managed node group"
   type        = number
   default     = 3
-  
+
 }
 variable "namespaces" {
   description = "List of namespaces"
   type        = list(string)
   default     = ["namespace1", "namespace2", "namespace3"]
-  
+
 }
+
+
+variable "kafka_version" {
+  description = "The version of the Kafka chart."
+  default     = "25.2.0"
+}
+
+variable "namespace_kafka" {
+  description = "The namespace for Kafka."
+  default     = "namespace2"
+}
+
+variable "listeners_client_protocol" {
+  description = "The protocol for Kafka client listeners."
+  default     = "PLAINTEXT"
+}
+
+variable "listeners_controller_protocol" {
+  description = "The protocol for Kafka controller listeners."
+  default     = "PLAINTEXT"
+}
+
+variable "listeners_interbroker_protocol" {
+  description = "The protocol for Kafka interbroker listeners."
+  default     = "PLAINTEXT"
+}
+
+variable "listeners_external_protocol" {
+  description = "The protocol for Kafka external listeners."
+  default     = "PLAINTEXT"
+}
+
+variable "controller_replica_count" {
+  description = "The replica count for the Kafka controller."
+  default     = 0
+}
+
+variable "broker_replica_count" {
+  description = "The replica count for Kafka brokers."
+  default     = 3
+}
+
+variable "broker_persistence_size" {
+  description = "The persistence size for Kafka brokers."
+  default     = "4Gi"
+}
+
+variable "service_account_create" {
+  description = "Whether to create a service account for Kafka."
+  default     = "false"
+}
+
+variable "provisioning_enabled" {
+  description = "Whether provisioning is enabled for Kafka."
+  default     = "true"
+}
+
+variable "provisioning_num_partitions" {
+  description = "The number of partitions for Kafka provisioning."
+  default     = 3
+}
+
+variable "provisioning_replication_factor" {
+  description = "The replication factor for Kafka provisioning."
+  default     = 2
+}
+
+variable "provisioning_topic_name" {
+  description = "The name of the Kafka provisioning topic."
+  default     = "cve"
+}
+
+variable "kraft_enabled" {
+  description = "Whether Kraft is enabled for Kafka."
+  default     = "false"
+}
+
+variable "zookeeper_replica_count" {
+  description = "The replica count for Kafka Zookeeper."
+  default     = 2
+}
+
+variable "zookeeper_enabled" {
+  description = "Whether Zookeeper is enabled for Kafka."
+  default     = "true"
+}
+
+variable "zookeeper_persistence_size" {
+  description = "The persistence size for Kafka Zookeeper."
+  default     = "2Gi"
+}
+
+variable "postgresql_version" {
+  description = "The version of the PostgreSQL chart."
+  default     = "14.2.7"
+}
+
+variable "namespace_postgresql" {
+  description = "The namespace for PostgreSQL."
+  default     = "namespace3"
+}
+
+variable "postgresql_postgres_password" {
+  description = "The password for the PostgreSQL postgres user."
+  default     = "changeme"
+}
+
+variable "postgresql_username" {
+  description = "The username for the PostgreSQL database."
+  default     = "cve"
+}
+
+variable "postgresql_password" {
+  description = "The password for the PostgreSQL database user."
+  default     = "changeme"
+}
+
+variable "postgresql_database" {
+  description = "The name of the PostgreSQL database."
+  default     = "mydatabase"
+}
+
+variable "postgresql_repmgr_username" {
+  description = "The repmgr username for PostgreSQL."
+  default     = "repmgr"
+}
+
+variable "postgresql_repmgr_password" {
+  description = "The repmgr password for PostgreSQL."
+  default     = "repmgrpassword"
+}
+
+variable "postgresql_repmgr_database" {
+  description = "The repmgr database for PostgreSQL."
+  default     = "repmgr"
+}
+
+variable "pgpool_custom_usernames" {
+  description = "The custom usernames for pgpool."
+  default     = "cve"
+}
+
+variable "pgpool_custom_passwords" {
+  description = "The custom passwords for pgpool."
+  default     = "changeme"
+}
+
+variable "pgpool_num_init_children" {
+  description = "The number of initial children for pgpool."
+  default     = 32
+}
+
+variable "pgpool_max_pool" {
+  description = "The maximum pool size for pgpool."
+  default     = 100
+}
+
+variable "pgpool_child_life_time" {
+  description = "The child lifetime for pgpool."
+  default     = 300
+}
+
+variable "pgpool_connection_life_time" {
+  description = "The connection lifetime for pgpool."
+  default     = 600
+}
+
+variable "pgpool_client_idle_limit" {
+  description = "The client idle limit for pgpool."
+  default     = 60
+}
+
