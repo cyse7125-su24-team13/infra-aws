@@ -176,6 +176,85 @@ resource "helm_release" "postgresql_ha" {
   }
 }
 
+resource "helm_release" "cluster_autoscaler" {
+  depends_on = [module.eks]
+
+  name       = "cluster-autoscaler"
+  repository = "https://kubernetes.github.io/autoscaler"
+  chart      = "cluster-autoscaler"
+  namespace  = "cluster-autoscaler"
+  version    = "9.37.0" # Replace with the desired version
+
+  set {
+    name  = "autoDiscovery.clusterName"
+    value = var.cluster_name
+  }
+
+  set {
+    name  = "awsRegion"
+    value = var.region
+  }
+
+  set {
+    name  = "rbac.serviceAccount.create"
+    value = true
+  }
+
+  set {
+    name  = "rbac.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.cluster_autoscaler_role.arn
+  }
+
+  set {
+    name  = "rbac.serviceAccount.name"
+    value = "cluster-autoscaler"
+  }
+}
+
+resource "helm_release" "metrics_server" {
+  depends_on = [module.eks]
+
+  name       = "metrics-server"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "metrics-server"
+  namespace  = "kube-system"
+  version    = "7.2.2"
+
+  set {
+    name  = "apiService.create"
+    value = true
+  }
+
+  set {
+    name  = "extraArgs[0]"
+    value = "--kubelet-insecure-tls"
+  }
+
+  set {
+    name  = "extraArgs[1]"
+    value = "--kubelet-preferred-address-types=InternalIP"
+  }
+
+  set {
+    name  = "resources.limits.cpu"
+    value = "100m"
+  }
+
+  set {
+    name  = "resources.limits.memory"
+    value = "200Mi"
+  }
+
+  set {
+    name  = "resources.requests.cpu"
+    value = "100m"
+  }
+
+  set {
+    name  = "resources.requests.memory"
+    value = "200Mi"
+  }
+}
 
 data "aws_eks_cluster_auth" "cluster" {
   name = module.eks.cluster_name
