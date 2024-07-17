@@ -68,6 +68,7 @@ module "eks" {
       min_size     = var.podminsize
       max_size     = var.podmaxsize
       desired_size = var.desired_size
+      subnet_ids   = aws_subnet.private[*].id
     }
   }
 
