@@ -177,7 +177,7 @@ variable "capacity_type" {
 variable "podminsize" {
   description = "The minimum size of the EKS managed node group"
   type        = number
-  default     = 3
+  default     = 1
 
 }
 variable "podmaxsize" {
@@ -189,13 +189,13 @@ variable "podmaxsize" {
 variable "desired_size" {
   description = "The desired size of the EKS managed node group"
   type        = number
-  default     = 3
+  default     = 2
 
 }
 variable "namespaces" {
   description = "List of namespaces"
   type        = list(string)
-  default     = ["namespace1", "namespace2", "namespace3"]
+  default     = ["namespace1", "namespace2", "namespace3", "cluster-autoscaler"]
 
 }
 
