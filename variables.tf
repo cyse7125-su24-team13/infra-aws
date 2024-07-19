@@ -384,3 +384,7 @@ variable "dh_token" {
 
 variable "dh_email" {
 }
+variable "admin_password" {
+  description = "The password for the admin user."
+  default     = "changeme"
+}
