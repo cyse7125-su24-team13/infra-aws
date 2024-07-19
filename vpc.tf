@@ -12,7 +12,7 @@ locals {
   vpc_cidr = var.vpc_cidr
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
-  public_subnet_cidrs = var.public_subnet_cidrs
+  public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
 
   tags = var.tags
@@ -27,26 +27,26 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "public" {
-  count = length(local.public_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = element(local.public_subnet_cidrs, count.index)
-  availability_zone = element(local.azs, count.index)
+  count                   = length(local.public_subnet_cidrs)
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = element(local.public_subnet_cidrs, count.index)
+  availability_zone       = element(local.azs, count.index)
   map_public_ip_on_launch = true
 
   tags = merge(local.tags, {
-    "Name" = "${local.name}-public-subnet-${count.index}"
+    "Name"                   = "${local.name}-public-subnet-${count.index}"
     "kubernetes.io/role/elb" = 1
   })
 }
 
 resource "aws_subnet" "private" {
-  count = length(local.private_subnet_cidrs)
+  count             = length(local.private_subnet_cidrs)
   vpc_id            = aws_vpc.main.id
   cidr_block        = element(local.private_subnet_cidrs, count.index)
   availability_zone = element(local.azs, count.index)
 
   tags = merge(local.tags, {
-    "Name" = "${local.name}-private-subnet-${count.index}"
+    "Name"                            = "${local.name}-private-subnet-${count.index}"
     "kubernetes.io/role/internal-elb" = 1
   })
 }
@@ -96,7 +96,7 @@ resource "aws_eip" "nat" {
 }
 
 resource "aws_route_table" "private" {
-  count = length(local.private_subnet_cidrs)
+  count  = length(local.private_subnet_cidrs)
   vpc_id = aws_vpc.main.id
 
   route {
