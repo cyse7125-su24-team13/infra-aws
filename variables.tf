@@ -370,3 +370,14 @@ variable "pgpool_client_idle_limit" {
   default     = 60
 }
 
+variable "github_username" {
+}
+
+variable "github_token" {
+}
+
+variable "dh_username" {
+}
+
+variable "dh_token" {
+}

@@ -179,11 +179,11 @@ resource "helm_release" "postgresql_ha" {
 resource "helm_release" "cluster_autoscaler" {
   depends_on = [module.eks]
 
-  name       = "cluster-autoscaler"
-  repository = "https://kubernetes.github.io/autoscaler"
-  chart      = "cluster-autoscaler"
-  namespace  = "cluster-autoscaler"
-  version    = "9.37.0" # Replace with the desired version
+  name                = "cluster-autoscaler"
+  chart               = "https://github.com/cyse7125-su24-team13/helm-eks-autoscaler/archive/refs/tags/v1.0.6.tar.gz"
+  repository_username = var.github_username
+  repository_password = var.github_token
+  namespace           = "cluster-autoscaler"
 
   set {
     name  = "autoDiscovery.clusterName"
@@ -255,6 +255,21 @@ resource "helm_release" "metrics_server" {
     value = "200Mi"
   }
 }
+
+resource "kubernetes_secret" "docker_registry_secret" {
+  metadata {
+    name      = "docker-registry-secret"
+    namespace = "cluster-autoscaler"
+  }
+
+  data = {
+    username = base64encode(var.dh_username)
+    password = base64encode(var.dh_token)
+  }
+
+  type = "Opaque"
+}
+
 
 data "aws_eks_cluster_auth" "cluster" {
   name = module.eks.cluster_name
