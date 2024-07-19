@@ -94,10 +94,10 @@ resource "helm_release" "kafka" {
     name  = "zookeeper.persistence.size"
     value = var.zookeeper_persistence_size
   }
-   # Detailed affinity settings to ensure pods are in different zones
+  # Detailed affinity settings to ensure pods are in different zones
   set {
     name  = "broker.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].key"
-    value = "app"
+    value = "app.kubernetes.io/instance"
   }
 
   set {
@@ -201,18 +201,23 @@ resource "helm_release" "postgresql_ha" {
   }
 
   # Detailed affinity settings to ensure pods are in different zones
+  #   set {
+  #     name  = "postgresql.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"
+  #     value = "1" # Must set weight between 1 and 100
+  #   }
+
   set {
-    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].key"
-    value = "app"
+    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].podAffinityTerm.labelSelector.matchExpressions[0].key"
+    value = "app.kubernetes.io/instance"
   }
 
   set {
-    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].operator"
+    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].podAffinityTerm.labelSelector.matchExpressions[0].operator"
     value = "In"
   }
 
   set {
-    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].values[0]"
+    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].podAffinityTerm.labelSelector.matchExpressions[0].values[0]"
     value = "postgresql-ha"
   }
 
