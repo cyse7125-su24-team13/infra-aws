@@ -209,6 +209,25 @@ resource "helm_release" "cluster_autoscaler" {
     name  = "rbac.serviceAccount.name"
     value = "cluster-autoscaler"
   }
+
+  set {
+    name  = "image.repository"
+    value = "vakiti3010/cluster-autoscaler"
+  }
+
+  set {
+    name  = "image.pullPolicy"
+    value = "Always"
+  }
+  set {
+    name  = "image.tag"
+    value = "v1.30.2"
+  }
+
+  set {
+    name  = "image.pullSecrets[0]"
+    value = kubernetes_secret.docker_registry_secret.metadata[0].name
+  }
 }
 
 resource "helm_release" "metrics_server" {
@@ -263,12 +282,22 @@ resource "kubernetes_secret" "docker_registry_secret" {
   }
 
   data = {
-    username = base64encode(var.dh_username)
-    password = base64encode(var.dh_token)
+    ".dockerconfigjson" = jsonencode({
+      auths = {
+        "https://index.docker.io/v1/" = {
+          username = var.dh_username
+          password = var.dh_token
+          email    = var.dh_email
+          auth     = base64encode("${var.dh_username}:${var.dh_token}")
+        }
+      }
+    })
   }
 
-  type = "Opaque"
+  type = "kubernetes.io/dockerconfigjson"
 }
+
+
 
 
 data "aws_eks_cluster_auth" "cluster" {

@@ -381,3 +381,6 @@ variable "dh_username" {
 
 variable "dh_token" {
 }
+
+variable "dh_email" {
+}
