@@ -94,6 +94,26 @@ resource "helm_release" "kafka" {
     name  = "zookeeper.persistence.size"
     value = var.zookeeper_persistence_size
   }
+   # Detailed affinity settings to ensure pods are in different zones
+  set {
+    name  = "broker.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].key"
+    value = "app"
+  }
+
+  set {
+    name  = "broker.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].operator"
+    value = "In"
+  }
+
+  set {
+    name  = "broker.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].values[0]"
+    value = "kafka"
+  }
+
+  set {
+    name  = "broker.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey"
+    value = "topology.kubernetes.io/zone"
+  }
 }
 
 resource "helm_release" "postgresql_ha" {
@@ -173,6 +193,32 @@ resource "helm_release" "postgresql_ha" {
   set {
     name  = "pgpool.clientIdleLimit"
     value = var.pgpool_client_idle_limit
+  }
+  # Add pgpool.adminPassword setting
+  set {
+    name  = "pgpool.adminPassword"
+    value = var.admin_password
+  }
+
+  # Detailed affinity settings to ensure pods are in different zones
+  set {
+    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].key"
+    value = "app"
+  }
+
+  set {
+    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].operator"
+    value = "In"
+  }
+
+  set {
+    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].labelSelector.matchExpressions[0].values[0]"
+    value = "postgresql-ha"
+  }
+
+  set {
+    name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey"
+    value = "topology.kubernetes.io/zone"
   }
 }
 
