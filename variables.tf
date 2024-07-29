@@ -189,7 +189,7 @@ variable "podmaxsize" {
 variable "desired_size" {
   description = "The desired size of the EKS managed node group"
   type        = number
-  default     = 2
+  default     = 3
 
 }
 variable "namespaces" {
