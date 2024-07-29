@@ -118,8 +118,11 @@ resource "kubernetes_namespace" "example" {
 
   metadata {
     name = each.value
-  }
 
+    labels = {
+      "istio-injection" = "enabled"
+    }
+  }
   depends_on = [module.eks, data.aws_eks_cluster.eks, data.aws_eks_cluster_auth.eks]
 }
 

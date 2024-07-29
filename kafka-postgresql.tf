@@ -225,6 +225,11 @@ resource "helm_release" "postgresql_ha" {
     name  = "postgresql.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey"
     value = "topology.kubernetes.io/zone"
   }
+
+  set {
+    name  = "podAnnotations.sidecar\\.istio\\.io/inject"
+    value = "false"
+  }
 }
 
 resource "helm_release" "cluster_autoscaler" {
@@ -263,7 +268,7 @@ resource "helm_release" "cluster_autoscaler" {
 
   set {
     name  = "image.repository"
-    value = "vakiti3010/cluster-autoscaler"
+    value = "rahhul1309/cluster-autoscaler"
   }
 
   set {
@@ -272,7 +277,7 @@ resource "helm_release" "cluster_autoscaler" {
   }
   set {
     name  = "image.tag"
-    value = "v1.30.2"
+    value = "v1.0.7"
   }
 
   set {
@@ -324,6 +329,124 @@ resource "helm_release" "metrics_server" {
     name  = "resources.requests.memory"
     value = "200Mi"
   }
+}
+
+resource "helm_release" "istio_base" {
+  name             = "istio-base"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "base"
+  namespace        = "istio-system"
+  create_namespace = true
+}
+
+resource "helm_release" "istio_istiod" {
+  name             = "istiod"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "istiod"
+  namespace        = "istio-system"
+  create_namespace = true
+
+  set {
+    name  = "global.proxy.accessLogFile"
+    value = "/dev/stdout"
+  }
+
+  set {
+    name  = "global.useMCP"
+    value = "false"
+  }
+
+  set {
+    name  = "meshConfig.enableTracing"
+    value = "true"
+  }
+
+  set {
+    name  = "meshConfig.accessLogFile"
+    value = "/dev/stdout"
+  }
+
+  set {
+    name  = "components.ingressGateways[0].name"
+    value = "istio-ingressgateway"
+  }
+
+  set {
+    name  = "components.ingressGateways[0].enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "components.egressGateways[0].name"
+    value = "istio-egressgateway"
+  }
+
+  set {
+    name  = "components.egressGateways[0].enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "values.gateways.istio-ingressgateway.type"
+    value = "LoadBalancer"
+  }
+
+  depends_on = [helm_release.istio_base]
+}
+
+resource "helm_release" "istio_ingressgateway" {
+  name             = "istio-ingressgateway"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "gateway"
+  namespace        = "istio-system"
+  create_namespace = true
+
+  set {
+    name  = "global.proxy.accessLogFile"
+    value = "/dev/stdout"
+  }
+
+  set {
+    name  = "global.useMCP"
+    value = "false"
+  }
+
+  set {
+    name  = "meshConfig.enableTracing"
+    value = "true"
+  }
+
+  set {
+    name  = "meshConfig.accessLogFile"
+    value = "/dev/stdout"
+  }
+
+  set {
+    name  = "components.ingressGateways[0].name"
+    value = "istio-ingressgateway"
+  }
+
+  set {
+    name  = "components.ingressGateways[0].enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "components.egressGateways[0].name"
+    value = "istio-egressgateway"
+  }
+
+  set {
+    name  = "components.egressGateways[0].enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "values.gateways.istio-ingressgateway.type"
+    value = "LoadBalancer"
+  }
+
+  depends_on = [helm_release.istio_istiod]
 }
 
 resource "kubernetes_secret" "docker_registry_secret" {
