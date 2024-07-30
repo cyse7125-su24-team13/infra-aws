@@ -346,6 +346,7 @@ resource "helm_release" "istio_istiod" {
   namespace        = "istio-system"
   create_namespace = true
 
+  # Using the default profile and customizing it
   set {
     name  = "global.proxy.accessLogFile"
     value = "/dev/stdout"
@@ -387,7 +388,7 @@ resource "helm_release" "istio_istiod" {
   }
 
   set {
-    name  = "values.gateways.istio-ingressgateway.type"
+    name  = "gateways.istio-ingressgateway.type"
     value = "LoadBalancer"
   }
 
@@ -401,6 +402,7 @@ resource "helm_release" "istio_ingressgateway" {
   namespace        = "istio-system"
   create_namespace = true
 
+  # Using the default profile and customizing it
   set {
     name  = "global.proxy.accessLogFile"
     value = "/dev/stdout"
@@ -442,12 +444,95 @@ resource "helm_release" "istio_ingressgateway" {
   }
 
   set {
-    name  = "values.gateways.istio-ingressgateway.type"
+    name  = "gateways.istio-ingressgateway.type"
     value = "LoadBalancer"
   }
 
   depends_on = [helm_release.istio_istiod]
 }
+
+resource "helm_release" "prometheus" {
+  name             = "prometheus"
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "prometheus"
+  namespace        = "monitoring"
+  create_namespace = true
+
+  values = [file("prometheus-values.yaml")]
+}
+
+resource "helm_release" "grafana" {
+  name             = "grafana"
+  repository       = "https://grafana.github.io/helm-charts"
+  chart            = "grafana"
+  namespace        = "monitoring"
+  create_namespace = true
+
+  values = [file("grafana-values.yaml")]
+}
+
+
+resource "helm_release" "kiali" {
+  name             = "kiali"
+  repository       = "https://kiali.org/helm-charts"
+  chart            = "kiali-server"
+  namespace        = "istio-system"
+  create_namespace = true
+
+  set {
+    name  = "auth.strategy"
+    value = "anonymous"
+  }
+
+  set {
+    name  = "external_services.istio.url_service_version"
+    value = "http://istiod.istio-system:8080/version"
+  }
+
+  set {
+    name  = "external_services.istio.url_service_version_istiod"
+    value = "http://istiod.istio-system:15014/version"
+  }
+
+  set {
+    name  = "external_services.istio.url_service_api"
+    value = "http://istiod.istio-system:8080"
+  }
+
+  set {
+    name  = "external_services.istio.url_service_api_istiod"
+    value = "http://istiod.istio-system:15014"
+  }
+
+  set {
+    name  = "external_services.prometheus.url"
+    value = "http://prometheus-server.monitoring.svc.cluster.local"
+  }
+
+  set {
+    name  = "external_services.grafana.url"
+    value = "http://grafana.monitoring.svc.cluster.local"
+  }
+
+  set {
+    name  = "server.port"
+    value = "20001"
+  }
+
+  set {
+    name  = "deployment.accessible_namespaces"
+    value = "[**]"
+  }
+
+  depends_on = [
+    helm_release.prometheus,
+    helm_release.grafana,
+    helm_release.istio_istiod,
+    helm_release.istio_ingressgateway
+  ]
+}
+
+
 
 resource "kubernetes_secret" "docker_registry_secret" {
   metadata {

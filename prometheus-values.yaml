@@ -1,0 +1,30 @@
+server:
+  global:
+    scrape_interval: 15s
+  scrape_configs:
+    - job_name: 'envoy-stats'
+      scrape_interval: 15s
+      static_configs:
+        - targets: ['localhost:15090']
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_container_port_name]
+          action: keep
+          regex: '.*-envoy-prom'
+
+    - job_name: 'istio-mesh'
+      scrape_interval: 15s
+      static_configs:
+        - targets: ['localhost:15020']
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_container_name]
+          action: keep
+          regex: '.*istio-proxy'
+
+    - job_name: 'istio-telemetry'
+      scrape_interval: 15s
+      static_configs:
+        - targets: ['localhost:15014']
+      relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_container_name]
+          action: keep
+          regex: '.*istio-telemetry'
