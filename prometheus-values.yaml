@@ -1,30 +1,53 @@
-server:
-  global:
-    scrape_interval: 15s
-  scrape_configs:
-    - job_name: 'envoy-stats'
-      scrape_interval: 15s
-      static_configs:
-        - targets: ['localhost:15090']
-      relabel_configs:
+prometheus: 
+  prometheusSpec: 
+    additionalScrapeConfigs: 
+      - job_name: 'postgres'
+        scrape_interval: 60s
+        scrape_timeout: 30s
+        static_configs: 
+          - targets: 
+              - 'postgresql-ha-postgresql-metrics.namespace3.svc.cluster.local:9187'
+      - job_name: "kafka"
+        scrape_interval: 60s
+        scrape_timeout: 30s
+        static_configs:
+          - targets:
+              - 'kafka-jmx-metrics.namespace2.svc.cluster.local:5556'
+      - job_name: "kafka-zookeeper"
+        scrape_interval: 60s
+        scrape_timeout: 30s
+        static_configs:
+          - targets:
+              - 'kafka-zookeeper-metrics.namespace2.svc.cluster.local:9141'
+      - job_name: 'istiod'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: istiod;http-monitoring
+      - job_name: 'envoy-stats'
+        metrics_path: /stats/prometheus
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
         - source_labels: [__meta_kubernetes_pod_container_port_name]
           action: keep
           regex: '.*-envoy-prom'
 
-    - job_name: 'istio-mesh'
-      scrape_interval: 15s
-      static_configs:
-        - targets: ['localhost:15020']
-      relabel_configs:
-        - source_labels: [__meta_kubernetes_pod_container_name]
-          action: keep
-          regex: '.*istio-proxy'
 
-    - job_name: 'istio-telemetry'
-      scrape_interval: 15s
-      static_configs:
-        - targets: ['localhost:15014']
-      relabel_configs:
-        - source_labels: [__meta_kubernetes_pod_container_name]
-          action: keep
-          regex: '.*istio-telemetry'
+# grafana: 
+#   adminPassword: "admin"
+#   service:
+#     type: LoadBalancer
+#     port: 80
+#     targetPort: 3000
+#     annotations:
+#       service.beta.kubernetes.io/aws-load-balancer-eip-allocations: "eipalloc-0fe979a43c96b9692"
+
+
+commonLabels:
+  pg-network-policy: "true"

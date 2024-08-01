@@ -15,6 +15,10 @@ resource "helm_release" "kafka" {
   namespace  = var.namespace_kafka
   version    = var.kafka_version
 
+  values = [
+    file("kafka-values.yaml")
+  ]
+
   set {
     name  = "listeners.client.protocol"
     value = var.listeners_client_protocol
@@ -114,6 +118,16 @@ resource "helm_release" "kafka" {
     name  = "broker.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey"
     value = "topology.kubernetes.io/zone"
   }
+
+  # set {
+  #   name  = "metrics.jmx.enabled"
+  #   value = true
+  # }
+  # set {
+  #   name  = "metrics.jmx.kafkaJmxPort"
+  #   value = 5555
+  # }
+
 }
 
 resource "helm_release" "postgresql_ha" {
@@ -229,6 +243,15 @@ resource "helm_release" "postgresql_ha" {
   set {
     name  = "podAnnotations.sidecar\\.istio\\.io/inject"
     value = "false"
+  }
+
+  set {
+    name  = "metrics.enabled"
+    value = true
+  }
+  set {
+    name  = "metrics.containerPorts.http"
+    value = 9187
   }
 }
 
@@ -451,86 +474,99 @@ resource "helm_release" "istio_ingressgateway" {
   depends_on = [helm_release.istio_istiod]
 }
 
-resource "helm_release" "prometheus" {
-  name             = "prometheus"
+# resource "helm_release" "prometheus" {
+#   name             = "prometheus"
+#   repository       = "https://prometheus-community.github.io/helm-charts"
+#   chart            = "prometheus"
+#   namespace        = "monitoring"
+#   create_namespace = false
+
+#   values = [file("prometheus-values.yaml")]
+# }
+
+# resource "helm_release" "grafana" {
+#   name             = "grafana"
+#   repository       = "https://grafana.github.io/helm-charts"
+#   chart            = "grafana"
+#   namespace        = "monitoring"
+#   create_namespace = false
+
+#   values = [file("grafana-values.yaml")]
+# }
+
+resource "helm_release" "prometheus_graphana" {
+  name             = "graphana-prometheus"
   repository       = "https://prometheus-community.github.io/helm-charts"
-  chart            = "prometheus"
+  chart            = "kube-prometheus-stack"
   namespace        = "monitoring"
   create_namespace = true
 
-  values = [file("prometheus-values.yaml")]
-}
-
-resource "helm_release" "grafana" {
-  name             = "grafana"
-  repository       = "https://grafana.github.io/helm-charts"
-  chart            = "grafana"
-  namespace        = "monitoring"
-  create_namespace = true
-
-  values = [file("grafana-values.yaml")]
-}
-
-
-resource "helm_release" "kiali" {
-  name             = "kiali"
-  repository       = "https://kiali.org/helm-charts"
-  chart            = "kiali-server"
-  namespace        = "istio-system"
-  create_namespace = true
-
-  set {
-    name  = "auth.strategy"
-    value = "anonymous"
-  }
-
-  set {
-    name  = "external_services.istio.url_service_version"
-    value = "http://istiod.istio-system:8080/version"
-  }
-
-  set {
-    name  = "external_services.istio.url_service_version_istiod"
-    value = "http://istiod.istio-system:15014/version"
-  }
-
-  set {
-    name  = "external_services.istio.url_service_api"
-    value = "http://istiod.istio-system:8080"
-  }
-
-  set {
-    name  = "external_services.istio.url_service_api_istiod"
-    value = "http://istiod.istio-system:15014"
-  }
-
-  set {
-    name  = "external_services.prometheus.url"
-    value = "http://prometheus-server.monitoring.svc.cluster.local"
-  }
-
-  set {
-    name  = "external_services.grafana.url"
-    value = "http://grafana.monitoring.svc.cluster.local"
-  }
-
-  set {
-    name  = "server.port"
-    value = "20001"
-  }
-
-  set {
-    name  = "deployment.accessible_namespaces"
-    value = "[**]"
-  }
-
-  depends_on = [
-    helm_release.prometheus,
-    helm_release.grafana,
-    helm_release.istio_istiod,
-    helm_release.istio_ingressgateway
+  values = [
+    "${file("prometheus-values.yaml")}"
   ]
 }
+
+
+
+# resource "helm_release" "kiali" {
+#   name             = "kiali"
+#   repository       = "https://kiali.org/helm-charts"
+#   chart            = "kiali-server"
+#   namespace        = "istio-system"
+#   create_namespace = true
+
+#   set {
+#     name  = "auth.strategy"
+#     value = "anonymous"
+#   }
+
+#   set {
+#     name  = "external_services.istio.url_service_version"
+#     value = "http://istiod.istio-system:8080/version"
+#   }
+
+#   set {
+#     name  = "external_services.istio.url_service_version_istiod"
+#     value = "http://istiod.istio-system:15014/version"
+#   }
+
+#   set {
+#     name  = "external_services.istio.url_service_api"
+#     value = "http://istiod.istio-system:8080"
+#   }
+
+#   set {
+#     name  = "external_services.istio.url_service_api_istiod"
+#     value = "http://istiod.istio-system:15014"
+#   }
+
+#   set {
+#     name  = "external_services.prometheus.url"
+#     value = "http://prometheus-server.monitoring.svc.cluster.local"
+#   }
+
+#   set {
+#     name  = "external_services.grafana.url"
+#     value = "http://grafana.monitoring.svc.cluster.local"
+#   }
+
+#   set {
+#     name  = "server.port"
+#     value = "20001"
+#   }
+
+#   set {
+#     name  = "deployment.accessible_namespaces"
+#     value = "[**]"
+#   }
+
+#   depends_on = [
+#     helm_release.prometheus,
+#     helm_release.grafana,
+#     helm_release.istio_istiod,
+#     helm_release.istio_ingressgateway
+#   ]
+# }
 
 
 
@@ -557,10 +593,88 @@ resource "kubernetes_secret" "docker_registry_secret" {
 }
 
 
+resource "helm_release" "fluent_bit" {
+  name       = "fluent-bit"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "fluent-bit"
+  namespace  = "kube-system"
+
+  values = [
+    file("fluentbit-values.yaml")
+  ]
+}
+
+resource "helm_release" "cert_manager" {
+  name             = "cert-manager"
+  repository       = "https://charts.jetstack.io"
+  chart            = "cert-manager"
+  namespace        = "cert-manager"
+  create_namespace = true
+
+  set {
+    name  = "installCRDs"
+    value = "true"
+  }
+}
+
+# resource "kubernetes_manifest" "letsencrypt_cluster_issuer" {
+#   manifest = {
+#     apiVersion = "cert-manager.io/v1"
+#     kind       = "ClusterIssuer"
+#     metadata = {
+#       name = "letsencrypt-prod"
+#     }
+#     spec = {
+#       acme = {
+#         server = "https://acme-v02.api.letsencrypt.org/directory"
+#         email  = "vakiti.sai98@gmail.com"
+#         privateKeySecretRef = {
+#           name = "letsencrypt-prod"
+#         }
+#         solvers = [
+#           {
+#             http01 = {
+#               ingress = {
+#                 class = "nginx"
+#               }
+#             }
+#           }
+#         ]
+#       }
+#     }
+#   }
+
+#   depends_on = [helm_release.cert_manager]
+# }
+
+# resource "kubernetes_manifest" "grafana_certificate" {
+#   manifest = {
+#     apiVersion = "cert-manager.io/v1"
+#     kind       = "Certificate"
+#     metadata = {
+#       name      = "grafana-cert"
+#       namespace = "monitoring" # Use the namespace where your service is deployed
+#     }
+#     spec = {
+#       secretName = "grafana-tls"
+#       issuerRef = {
+#         name = "letsencrypt-prod"
+#         kind = "ClusterIssuer"
+#       }
+#       commonName = "grafana.eazydelivery.in"
+#       dnsNames = [
+#         "grafana.eazydelivery.in"
+#       ]
+#     }
+#   }
+
+#   depends_on = [kubernetes_manifest.letsencrypt_cluster_issuer]
+# }
 
 
 data "aws_eks_cluster_auth" "cluster" {
   name = module.eks.cluster_name
 }
+
 
 
