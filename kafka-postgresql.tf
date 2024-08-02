@@ -474,25 +474,6 @@ resource "helm_release" "istio_ingressgateway" {
   depends_on = [helm_release.istio_istiod]
 }
 
-# resource "helm_release" "prometheus" {
-#   name             = "prometheus"
-#   repository       = "https://prometheus-community.github.io/helm-charts"
-#   chart            = "prometheus"
-#   namespace        = "monitoring"
-#   create_namespace = false
-
-#   values = [file("prometheus-values.yaml")]
-# }
-
-# resource "helm_release" "grafana" {
-#   name             = "grafana"
-#   repository       = "https://grafana.github.io/helm-charts"
-#   chart            = "grafana"
-#   namespace        = "monitoring"
-#   create_namespace = false
-
-#   values = [file("grafana-values.yaml")]
-# }
 
 resource "helm_release" "prometheus_graphana" {
   name             = "graphana-prometheus"
@@ -505,69 +486,6 @@ resource "helm_release" "prometheus_graphana" {
     "${file("prometheus-values.yaml")}"
   ]
 }
-
-
-
-# resource "helm_release" "kiali" {
-#   name             = "kiali"
-#   repository       = "https://kiali.org/helm-charts"
-#   chart            = "kiali-server"
-#   namespace        = "istio-system"
-#   create_namespace = true
-
-#   set {
-#     name  = "auth.strategy"
-#     value = "anonymous"
-#   }
-
-#   set {
-#     name  = "external_services.istio.url_service_version"
-#     value = "http://istiod.istio-system:8080/version"
-#   }
-
-#   set {
-#     name  = "external_services.istio.url_service_version_istiod"
-#     value = "http://istiod.istio-system:15014/version"
-#   }
-
-#   set {
-#     name  = "external_services.istio.url_service_api"
-#     value = "http://istiod.istio-system:8080"
-#   }
-
-#   set {
-#     name  = "external_services.istio.url_service_api_istiod"
-#     value = "http://istiod.istio-system:15014"
-#   }
-
-#   set {
-#     name  = "external_services.prometheus.url"
-#     value = "http://prometheus-server.monitoring.svc.cluster.local"
-#   }
-
-#   set {
-#     name  = "external_services.grafana.url"
-#     value = "http://grafana.monitoring.svc.cluster.local"
-#   }
-
-#   set {
-#     name  = "server.port"
-#     value = "20001"
-#   }
-
-#   set {
-#     name  = "deployment.accessible_namespaces"
-#     value = "[**]"
-#   }
-
-#   depends_on = [
-#     helm_release.prometheus,
-#     helm_release.grafana,
-#     helm_release.istio_istiod,
-#     helm_release.istio_ingressgateway
-#   ]
-# }
-
 
 
 resource "kubernetes_secret" "docker_registry_secret" {
@@ -604,18 +522,18 @@ resource "helm_release" "fluent_bit" {
   ]
 }
 
-resource "helm_release" "cert_manager" {
-  name             = "cert-manager"
-  repository       = "https://charts.jetstack.io"
-  chart            = "cert-manager"
-  namespace        = "cert-manager"
-  create_namespace = true
+# resource "helm_release" "cert_manager" {
+#   name             = "cert-manager"
+#   repository       = "https://charts.jetstack.io"
+#   chart            = "cert-manager"
+#   namespace        = "cert-manager"
+#   create_namespace = true
 
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
-}
+#   set {
+#     name  = "installCRDs"
+#     value = "true"
+#   }
+# }
 
 # resource "kubernetes_manifest" "letsencrypt_cluster_issuer" {
 #   manifest = {
@@ -635,7 +553,7 @@ resource "helm_release" "cert_manager" {
 #           {
 #             http01 = {
 #               ingress = {
-#                 class = "nginx"
+#                 serviceType = "NodePort"
 #               }
 #             }
 #           }
@@ -646,6 +564,7 @@ resource "helm_release" "cert_manager" {
 
 #   depends_on = [helm_release.cert_manager]
 # }
+
 
 # resource "kubernetes_manifest" "grafana_certificate" {
 #   manifest = {
@@ -676,5 +595,40 @@ data "aws_eks_cluster_auth" "cluster" {
   name = module.eks.cluster_name
 }
 
+resource "helm_release" "external_dns" {
+  name       = "external-dns"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "external-dns"
+  version    = "8.3.3"
+  namespace  = "monitoring"
+
+  set {
+    name  = "provider"
+    value = "aws"
+  }
+
+  set {
+    name  = "aws.zoneType"
+    value = "public"
+  }
+
+  set {
+    name  = "aws.credentials.accessKey"
+    value = var.aws_access_key # make sure to define this variable
+  }
+
+  set {
+    name  = "aws.credentials.secretKey"
+    value = var.aws_secret_key # make sure to define this variable
+  }
+
+  set {
+    name  = "logLevel"
+    value = "debug"
+  }
+
+  depends_on = [helm_release.prometheus_graphana]
+
+}
 
 
