@@ -72,12 +72,12 @@ grafana:
         revision: 1
         datasource: Prometheus
 
-  service:
-    type: LoadBalancer
-    port: 80
-    targetPort: 3000
-    annotations:
-      external-dns.alpha.kubernetes.io/hostname: grafana.eazydelivery.in
+  # service:
+  #   type: LoadBalancer
+  #   port: 80
+  #   targetPort: 3000
+  #   annotations:
+  #     external-dns.alpha.kubernetes.io/hostname: grafana.eazydelivery.in
 
 
 # grafana:

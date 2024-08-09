@@ -355,6 +355,8 @@ resource "helm_release" "metrics_server" {
 }
 
 resource "helm_release" "istio_base" {
+
+  depends_on       = [module.eks]
   name             = "istio-base"
   repository       = "https://istio-release.storage.googleapis.com/charts"
   chart            = "base"
@@ -425,7 +427,6 @@ resource "helm_release" "istio_ingressgateway" {
   namespace        = "istio-system"
   create_namespace = true
 
-  # Using the default profile and customizing it
   set {
     name  = "global.proxy.accessLogFile"
     value = "/dev/stdout"
@@ -471,11 +472,17 @@ resource "helm_release" "istio_ingressgateway" {
     value = "LoadBalancer"
   }
 
+  values = [
+    "${file("istio-values.yaml")}"
+  ]
+
   depends_on = [helm_release.istio_istiod]
 }
 
 
+
 resource "helm_release" "prometheus_graphana" {
+  depends_on       = [module.eks]
   name             = "graphana-prometheus"
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
@@ -512,6 +519,7 @@ resource "kubernetes_secret" "docker_registry_secret" {
 
 
 resource "helm_release" "fluent_bit" {
+  depends_on = [module.eks]
   name       = "fluent-bit"
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "fluent-bit"
@@ -522,74 +530,30 @@ resource "helm_release" "fluent_bit" {
   ]
 }
 
-# resource "helm_release" "cert_manager" {
-#   name             = "cert-manager"
-#   repository       = "https://charts.jetstack.io"
-#   chart            = "cert-manager"
-#   namespace        = "cert-manager"
-#   create_namespace = true
+resource "helm_release" "cert_manager" {
+  depends_on       = [module.eks]
+  name             = "cert-manager"
+  repository       = "https://charts.jetstack.io"
+  chart            = "cert-manager"
+  namespace        = "cert-manager"
+  create_namespace = true
 
-#   set {
-#     name  = "installCRDs"
-#     value = "true"
-#   }
-# }
+  set {
+    name  = "installCRDs"
+    value = "true"
+  }
 
-# resource "kubernetes_manifest" "letsencrypt_cluster_issuer" {
-#   manifest = {
-#     apiVersion = "cert-manager.io/v1"
-#     kind       = "ClusterIssuer"
-#     metadata = {
-#       name = "letsencrypt-prod"
-#     }
-#     spec = {
-#       acme = {
-#         server = "https://acme-v02.api.letsencrypt.org/directory"
-#         email  = "vakiti.sai98@gmail.com"
-#         privateKeySecretRef = {
-#           name = "letsencrypt-prod"
-#         }
-#         solvers = [
-#           {
-#             http01 = {
-#               ingress = {
-#                 serviceType = "NodePort"
-#               }
-#             }
-#           }
-#         ]
-#       }
-#     }
-#   }
+  set {
+    name  = "global.leaderElection.namespace"
+    value = "cert-manager"
+  }
+}
+
+# resource "kubernetes_manifest" "cert_manager_clusterissuer" {
+#   manifest = yamldecode(templatefile("vir-service.yaml", {}))
 
 #   depends_on = [helm_release.cert_manager]
 # }
-
-
-# resource "kubernetes_manifest" "grafana_certificate" {
-#   manifest = {
-#     apiVersion = "cert-manager.io/v1"
-#     kind       = "Certificate"
-#     metadata = {
-#       name      = "grafana-cert"
-#       namespace = "monitoring" # Use the namespace where your service is deployed
-#     }
-#     spec = {
-#       secretName = "grafana-tls"
-#       issuerRef = {
-#         name = "letsencrypt-prod"
-#         kind = "ClusterIssuer"
-#       }
-#       commonName = "grafana.eazydelivery.in"
-#       dnsNames = [
-#         "grafana.eazydelivery.in"
-#       ]
-#     }
-#   }
-
-#   depends_on = [kubernetes_manifest.letsencrypt_cluster_issuer]
-# }
-
 
 data "aws_eks_cluster_auth" "cluster" {
   name = module.eks.cluster_name
