@@ -1,0 +1,6 @@
+service:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    external-dns.alpha.kubernetes.io/hostname: grafana.eazydelivery.in
+    cert-manager.io/cluster-issuer: letsencrypt-prod

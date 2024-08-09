@@ -97,7 +97,7 @@ variable "eks_managed_node_groups" {
   default = {
     example = {
       ami_type                 = "AL2_x86_64"
-      instance_types           = ["c3.large"]
+      instance_types           = ["t2.medium"]
       create_iam_role          = true
       capacity_type            = "ON_DEMAND"
       iam_role_name            = "eks-managed-node-group-complete-example"
@@ -387,4 +387,18 @@ variable "dh_email" {
 variable "admin_password" {
   description = "The password for the admin user."
   default     = "changeme"
+}
+
+variable "aws_access_key" {
+  description = "AWS Access Key"
+  type        = string
+  sensitive   = true
+  default     = "AKIAXYKJRY5R5CHCA24G"
+}
+
+variable "aws_secret_key" {
+  description = "AWS Secret Key"
+  type        = string
+  sensitive   = true
+  default     = "aZS/IBreFTexKuEwQb4p9DOfstVb5WH/Ae0WW0pH"
 }
