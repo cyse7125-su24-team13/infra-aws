@@ -97,7 +97,7 @@ variable "eks_managed_node_groups" {
   default = {
     example = {
       ami_type                 = "AL2_x86_64"
-      instance_types           = ["t2.medium"]
+      instance_types           = ["c3.large"]
       create_iam_role          = true
       capacity_type            = "ON_DEMAND"
       iam_role_name            = "eks-managed-node-group-complete-example"
@@ -165,7 +165,7 @@ variable "ami_type" {
 variable "instance_types" {
   description = "List of instance types for the EKS managed node group"
   type        = list(string)
-  default     = ["c3.large"]
+  default     = ["c5.xlarge"]
 
 }
 variable "capacity_type" {
@@ -195,7 +195,7 @@ variable "desired_size" {
 variable "namespaces" {
   description = "List of namespaces"
   type        = list(string)
-  default     = ["namespace1", "namespace2", "namespace3", "cluster-autoscaler"]
+  default     = ["namespace1", "namespace2", "namespace3", "cluster-autoscaler", "final-project", "ollama"]
 
 }
 

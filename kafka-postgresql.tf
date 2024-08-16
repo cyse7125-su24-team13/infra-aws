@@ -7,7 +7,7 @@ provider "helm" {
 }
 
 resource "helm_release" "kafka" {
-  depends_on = [module.eks]
+  depends_on = [module.eks, kubernetes_config_map.kafka_log4j_config, helm_release.prometheus_graphana]
 
   name       = "kafka"
   repository = "https://charts.bitnami.com/bitnami"
@@ -33,6 +33,12 @@ resource "helm_release" "kafka" {
     name  = "listeners.interbroker.protocol"
     value = var.listeners_interbroker_protocol
   }
+
+  set {
+    name  = "existingLog4jConfigMap"
+    value = "kafka-log4j-config"
+  }
+
 
   set {
     name  = "listeners.external.protocol"
@@ -118,16 +124,6 @@ resource "helm_release" "kafka" {
     name  = "broker.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[0].topologyKey"
     value = "topology.kubernetes.io/zone"
   }
-
-  # set {
-  #   name  = "metrics.jmx.enabled"
-  #   value = true
-  # }
-  # set {
-  #   name  = "metrics.jmx.kafkaJmxPort"
-  #   value = 5555
-  # }
-
 }
 
 resource "helm_release" "postgresql_ha" {
@@ -477,6 +473,7 @@ resource "helm_release" "istio_ingressgateway" {
   ]
 
   depends_on = [helm_release.istio_istiod]
+
 }
 
 
@@ -595,4 +592,14 @@ resource "helm_release" "external_dns" {
 
 }
 
+resource "kubernetes_config_map" "kafka_log4j_config" {
+  metadata {
+    name      = "kafka-log4j-config"
+    namespace = "namespace2"
+  }
+
+  data = {
+    "log4j.properties" = file("${path.module}/log4j.properties")
+  }
+}
 
