@@ -21,3 +21,4 @@ metrics:
 zookeeper:
   metrics:
     enabled: true
+

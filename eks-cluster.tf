@@ -52,6 +52,7 @@ module "eks" {
   control_plane_subnet_ids                 = aws_subnet.public[*].id
   cluster_enabled_log_types                = var.cluster_enabled_log_types
   enable_cluster_creator_admin_permissions = var.enable_cluster_creator_admin_permissions
+
   eks_managed_node_groups = {
     example = {
       ami_type                 = var.ami_type
@@ -72,7 +73,33 @@ module "eks" {
       max_size     = var.podmaxsize
       desired_size = var.desired_size
     }
+    gpu_node_group = {
+      ami_type                 = "AL2_x86_64_GPU"
+      instance_types           = ["g5.xlarge"]
+      create_iam_role          = true
+      capacity_type            = "ON_DEMAND"
+      iam_role_name            = "eks-managed-node-group-gpu"
+      iam_role_use_name_prefix = false
+      iam_role_description     = "EKS managed node group for GPU instances"
+      iam_role_tags = {
+        Purpose = "GPU Workloads"
+      }
+      min_size     = 1
+      max_size     = 1
+      desired_size = 1
+
+      labels = {
+        "node-type" = "gpu"
+      }
+
+      taints = [{
+        key    = "gpu"
+        value  = "true"
+        effect = "NO_SCHEDULE"
+      }]
+    }
   }
+
   node_security_group_additional_rules = {
     ingress_15017 = {
       description                   = "Cluster API - Istio Webhook namespace.sidecar-injector.istio.io"
@@ -131,6 +158,7 @@ module "ebs_csi_irsa_role" {
     }
   }
 }
+
 resource "kubernetes_namespace" "example" {
   for_each = toset(var.namespaces)
 
@@ -143,4 +171,3 @@ resource "kubernetes_namespace" "example" {
   }
   depends_on = [module.eks, data.aws_eks_cluster.eks, data.aws_eks_cluster_auth.eks]
 }
-
