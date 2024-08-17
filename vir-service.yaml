@@ -15,9 +15,29 @@ spec:
         - destination:
             host: flask-app-service.final-project.svc.cluster.local  # Full DNS name of the Kubernetes service
             port:
-              number: 80  # The port exposed by the Kubernetes service
+              number: 80
 
 ---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ui-virtualservice
+spec:
+  hosts:
+    - "*"  # The hostname for accessing the service, can be customized
+  gateways:
+    - monitoring/grafana-gateway  # Or your custom gateway
+  http:
+    - match:
+        - uri:
+            prefix: /chat-ui  # Route all traffic to this service
+      route:
+        - destination:
+            host: chat-ui-service.final-project.svc.cluster.local  # Full DNS name of the Kubernetes service
+            port:
+              number: 80
+---
+
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
